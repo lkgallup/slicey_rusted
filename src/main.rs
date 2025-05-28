@@ -35,6 +35,16 @@ fn main() {
         .iter()
         .map(|x| STLMesh::new(x.clone()))
         .collect();
+    
+    let z_offset = -1.0 * stl_meshes[0].bounding_box().z_min;
+    let _ = stl_meshes[0].translate(20.0,20.0,z_offset);
+    let _ = stl_meshes[0].scale(10.0, 10.0, 10.0);
+    // let _ = stl_meshes[0].translate(0.0,0.0,-&stl_meshes[0].bounding_box().z_min);
+    // println!("Min Z: {:?}",stl_meshes[0].bounding_box().z_min);
+    // println!("Max Z: {:?}",stl_meshes[0].bounding_box().z_max);
+    
+    // let bb = stl.bounding_box();
+    
     let slicer = Slicer::new(settings, stl_meshes);
     let _ = slicer.slice(&args.gcode_file);
 
