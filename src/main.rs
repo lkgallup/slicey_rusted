@@ -1,3 +1,6 @@
+#[cfg(feature = "arcwelder")]
+use arcwelderlib_sys::arcwelder;
+
 use clap::Parser;
 use slicey::{
     geometry::STLMesh,
@@ -18,7 +21,10 @@ struct CLIArgs {
     stl_files: Vec<String>,
     /// Path to settings file
     #[arg(long)]
-    settings_file: String
+    settings_file: String,
+    /// Whether or not to use arcwelder. Requires cargo build --features arcwelder
+    #[arg(long)]
+    arcwelder: bool
 }
 
 fn main() {
@@ -31,4 +37,17 @@ fn main() {
         .collect();
     let slicer = Slicer::new(settings, stl_meshes);
     let _ = slicer.slice(&args.gcode_file);
+
+    // arcwelder stuff
+    let arcwelder_enabled = cfg!(feature = "arcwelder");
+    if arcwelder_enabled {
+        println!("ArcWelder feature is enabled.");
+    } else {
+        println!("ArcWelder feature is NOT enabled.");
+    }
+
+    #[cfg(feature = "arcwelder")]
+    if args.arcwelder {
+        arcwelder(&args.gcode_file, &args.gcode_file)
+    }
 }
