@@ -49,7 +49,7 @@ jobs:
           default: true
           toolchain: ${{ matrix.toolchain }}
       - name: build
-        run: cargo build --features arcwelder--release
+        run: cargo build --features arcwelder --release
       # - name: clippy
       #   run: cargo clippy -- -D warnings
       # - name: clippy
