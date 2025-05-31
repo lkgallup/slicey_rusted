@@ -1,0 +1,29 @@
+[book]
+authors = ["Craig M. Hamel", "Lucas K. Gallup"]
+language = "en"
+multilingual = false
+src = "book/"
+title = "slicey"
+
+[build]
+build-dir = "book/build/"
+create-missing = false
+
+[rust]
+edition = "2021"
+
+[output.html]
+edit-url-template = "https://github.com/cmhamel/slicey/edit/main/{path}"
+git-repository-url = "https://github.com/cmhamel/slicey"
+
+# [preprocessor.cmdrun]
+
+[preprocessor.katex]
+after = ["links"]
+
+# [preprocessor.repl]
+# # iframe url, default is https://mr-addict.github.io/mdbook-repl/embed/
+# src = "https://mr-addict.github.io/mdbook-repl/embed/"
+
+# # python is disabled by default and loading is lazy
+# python.enable = true

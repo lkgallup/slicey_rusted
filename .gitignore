@@ -1,4 +1,5 @@
 /arcwelderlib-sys/vendor/ArcWelderLib
+/book/build
 /target
 Cargo.lock
 *.gcode
