@@ -1,2 +1,0 @@
-# Introduction
-Some stuff here

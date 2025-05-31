@@ -1,4 +1,7 @@
+use nalgebra;
+use std::env;
 use std::fs::OpenOptions;
+use std::path;
 use stl_io::{
     self, 
     IndexedTriangle, 
@@ -14,6 +17,18 @@ pub type Edges = Vec<Edge>;
 type Faces = Vec<Face>;
 type Triangles = Vec<Triangle>;
 type Vertices = Vec<Vertex>;
+
+pub trait RayIntersection {
+    fn ray_intersection(
+        &self, 
+        point: &nalgebra::Point3::<f32>,
+        ray: &nalgebra::Vector3::<f32>
+    ) -> bool {
+        true // todo
+    }
+}
+
+impl RayIntersection for Triangle {}
 
 ///
 #[derive(Debug)]
@@ -40,7 +55,14 @@ impl STLMesh {
         let mut file = OpenOptions::new()
             .read(true)
             .open(&file_name)
-            .unwrap();
+            // .unwrap();
+            .expect(
+                format!(
+                    "Failed to open STL file. Path is {:?} and current dir is {:?}", 
+                    path::Path::new(&file_name),
+                    env::current_dir().unwrap()
+                ).as_str()
+            );
         let stl = stl_io::read_stl(&mut file).unwrap();
 
         // let triangles = STLMesh::_triangles(&stl);
@@ -84,6 +106,20 @@ impl STLMesh {
     pub fn home_z(&mut self) -> () {
         let bb = self.bounding_box();
         self.translate(0., 0., -bb.z_min);
+    }
+
+    pub fn is_inside(&self, point: nalgebra::Point3::<f32>) -> bool {
+        // arbitrary ray in +x direction
+        let ray = nalgebra::Vector3::<f32>::new(1., 0., 0.);
+        
+        let mut count = 0;
+        for tri in self.triangles() {
+            if tri.ray_intersection(&point, &ray) {
+                count = count + 1;
+            }
+        }
+
+        count % 2 == 1
     }
 
     pub fn scale(&mut self, x: f32, y: f32, z: f32) -> () {
