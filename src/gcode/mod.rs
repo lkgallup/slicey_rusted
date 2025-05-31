@@ -59,4 +59,16 @@ impl GcodeWriter {
             ).as_str()
         );
     }
+    pub fn write_perimeter(
+        &mut self,
+        x: f32, y: f32, z: f32, s:f32,
+        extrusion: f32
+    ) -> () {
+        self.write_gcode(
+            format!(
+                "G1 X{} Y{} E{} ; Move while extruding",
+                x, y, s
+            ).as_str()
+        );
+    }
 }
