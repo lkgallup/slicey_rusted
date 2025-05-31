@@ -1,0 +1,15 @@
+{
+    "name": "some name",
+    "material": "PEGDA250",
+
+    "xy_resolution": {
+        "x_pixels": 1024,
+        "y_pixels": 768,
+        "x_pixel_resolution": 0.05,
+        "y_pixel_resolution": 0.05
+    },
+    "layer_height": {
+        "layer_0_height": 0.1,
+        "layer_n_height": 0.2
+    }
+}

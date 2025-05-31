@@ -1,63 +1,95 @@
 #[cfg(feature = "arcwelder")]
-use arcwelderlib_sys::arcwelder;
+use arcwelderlib_sys;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use slicey::{
     geometry::STLMesh,
     settings::Settings,
-    slicer::Slicer
+    slicer::{
+        DLPSlicer,
+        FFFSlicer,
+        Slicer
+    }
 };
 
-// CLIP parser
+/// CLIP parser
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
-// #[command(name = "slicey", about = "A slicey CLI example", version)]
 struct CLIArgs {
-    /// Path to gcode to write file to
-    #[arg(short, long)]
-    gcode_file: String,
-    /// Paths to stl file/files
-    #[arg(short, long, value_delimiter = ',')]
-    stl_files: Vec<String>,
-    /// Path to settings file
-    #[arg(long)]
-    settings_file: String,
-    /// Whether or not to use arcwelder. Requires cargo build --features arcwelder
-    #[arg(long)]
-    arcwelder: bool
+    #[command(subcommand)]
+    command: Option<Commands>
+}
+
+/// Subcommands
+#[derive(Clone, Debug, Subcommand)]
+enum Commands {
+    #[command(about = "DLP")]
+    DLP {
+        #[arg(short, long, value_delimiter = ',')]
+        stl_file: String,
+        #[arg(long)]
+        settings_file: String,
+        #[arg(short, long)]
+        image_folder: String
+    },
+    #[command(about = "DIW/FFF/SLA")]
+    FFF {
+        /// Path to gcode to write file to
+        #[arg(short, long)]
+        gcode_file: String,
+        /// Paths to stl file/files
+        #[arg(short, long, value_delimiter = ',')]
+        stl_files: Vec<String>,
+        /// Path to settings file
+        #[arg(long)]
+        settings_file: String,
+        /// Whether or not to use arcwelder. Requires cargo build --features arcwelder
+        #[arg(long)]
+        arcwelder: bool
+    }
 }
 
 fn main() {
-    let args = CLIArgs::parse();
-    println!("STL file      = {:?}", args.stl_files);
-    let settings = Settings::new(&args.settings_file);
-    let mut stl_meshes: Vec<STLMesh> = args.stl_files
-        .iter()
-        .map(|x| STLMesh::new(x.clone()))
-        .collect();
-    
-    let z_offset = -1.0 * stl_meshes[0].bounding_box().z_min;
-    let _ = stl_meshes[0].translate(20.0,20.0,z_offset);
-    let _ = stl_meshes[0].scale(10.0, 10.0, 10.0);
-    // let _ = stl_meshes[0].translate(0.0,0.0,-&stl_meshes[0].bounding_box().z_min);
-    // println!("Min Z: {:?}",stl_meshes[0].bounding_box().z_min);
-    // println!("Max Z: {:?}",stl_meshes[0].bounding_box().z_max);
-    
-    // let bb = stl.bounding_box();
-    
-    let slicer = Slicer::new(settings, stl_meshes);
-    let _ = slicer.slice(&args.gcode_file);
+    let command = CLIArgs::parse();
 
-    // arcwelder stuff
-    let arcwelder_enabled = cfg!(feature = "arcwelder");
-    if arcwelder_enabled {
-        println!("ArcWelder feature is enabled.");
-    } else {
-        println!("ArcWelder feature is NOT enabled.");
-    }
+    match command.command {
+        Some(x) => match x {
+            Commands::DLP { stl_file, settings_file, image_folder } => {
+                let settings = Settings::new(&settings_file);
+                let stl_mesh = STLMesh::new(stl_file);
+                let slicer = DLPSlicer::new(settings, stl_mesh);
+                let _ = slicer.slice(&image_folder);
+            },
+            Commands::FFF { gcode_file, stl_files, settings_file, arcwelder } => {
 
-    #[cfg(feature = "arcwelder")]
-    if args.arcwelder {
-        arcwelder(&args.gcode_file, &args.gcode_file)
+                println!("STL file      = {:?}", stl_files);
+                let settings = Settings::new(&settings_file);
+                let mut stl_meshes: Vec<STLMesh> = stl_files
+                    .iter()
+                    .map(|x| STLMesh::new(x.clone()))
+                    .collect();
+                
+                let z_offset = -1.0 * stl_meshes[0].bounding_box().z_min;
+                let _ = stl_meshes[0].translate(20.0,20.0,z_offset);
+                let _ = stl_meshes[0].scale(10.0, 10.0, 10.0);
+
+                let slicer = FFFSlicer::new(settings, stl_meshes);
+                let _ = slicer.slice(&gcode_file);
+
+                // arcwelder stuff
+                let arcwelder_enabled = cfg!(feature = "arcwelder");
+                if arcwelder_enabled {
+                    println!("ArcWelder feature is enabled.");
+                } else {
+                    println!("ArcWelder feature is NOT enabled.");
+                }
+
+                #[cfg(feature = "arcwelder")]
+                if arcwelder {
+                    arcwelderlib_sys::arcwelder(&gcode_file, &gcode_file)
+                }
+            }
+        },
+        None => panic!("Need a subcommand!")
     }
 }
