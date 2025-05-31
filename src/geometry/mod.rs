@@ -21,10 +21,10 @@ type Vertices = Vec<Vertex>;
 pub trait RayIntersection {
     fn ray_intersection(
         &self, 
-        point: nalgebra::Point3::<f32>,
-        ray: nalgebra::Vector3::<f32>
-    ) -> () {
-
+        point: &nalgebra::Point3::<f32>,
+        ray: &nalgebra::Vector3::<f32>
+    ) -> bool {
+        true // todo
     }
 }
 
@@ -112,9 +112,9 @@ impl STLMesh {
         // arbitrary ray in +x direction
         let ray = nalgebra::Vector3::<f32>::new(1., 0., 0.);
         
-        let mut count = 0
+        let mut count = 0;
         for tri in self.triangles() {
-            if tri.ray_intersection(point, &ray) {
+            if tri.ray_intersection(&point, &ray) {
                 count = count + 1;
             }
         }
